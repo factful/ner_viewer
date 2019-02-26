@@ -23,6 +23,24 @@
 <script>
 	export default {
 		helpers: {
+			matchGroups(entities){
+				// extract just the match objects
+				let allMatches = [];
+				entities.forEach((ent)=> allMatches = allMatches.concat(ent.matches));
+				// then sort the matches by start position.
+				// This is inadequate.  It's gotta be by start AND if a match 
+				// is wholely contained w/in the span of another span.
+				// I suppose that means the entire thing has to be a recursive
+				// descent.
+				let matchesByStart = {};
+				allMatches.forEach((match)=>{
+					let position = (matchesByStart[match.start] || []);
+					position.push(match);
+					matchesByStart[match.start] = position;
+				});
+				console.log(matchesByStart);
+				return matchesByStart;
+			},
 			insertEntities(text, entities) {
 				let markup = text;
 
@@ -30,6 +48,10 @@
 				let allMatches = [];
 				entities.forEach((ent)=> allMatches = allMatches.concat(ent.matches));
 				// then sort the matches by start position.
+				// This is inadequate.  It's gotta be by start AND if a match 
+				// is wholely contained w/in the span of another span.
+				// I suppose that means the entire thing has to be a recursive
+				// descent.
 				let matchesByStart = {};
 				allMatches.forEach((match)=>{
 					let position = (matchesByStart[match.start] || []);
@@ -57,9 +79,9 @@
 					markupChunks.push(text.slice(previousPosition, currentPosition));
 					
 					let longestMatch = matches[0];
-					markupChunks.push(`<span style="background-color:#ddd" data-id="${longestMatch.id}">`);
+					markupChunks.push(`<span style="background-color:#ddd" class="ent" data-id="${longestMatch.id}"><span class="ent_text">`);
 					markupChunks.push(text.slice(longestMatch.start, longestMatch.end));
-					markupChunks.push('</span>');
+					markupChunks.push('</span></span>');
 					previousPosition = longestMatch.end;
 					currentPosition = longestMatch.end;
 					/*
