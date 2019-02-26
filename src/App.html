@@ -1,0 +1,116 @@
+<h1>Hello {name}!</h1>
+
+<article>
+		On <span class="ent">
+			<span class="ent_text">
+				<span class="ent">
+					<span class="ent_text">January</span>
+					<mark class="ent_label">month</mark>
+				</span> 19th, 
+				<span class="ent">
+					<span class="ent_text">2038</span>
+					<mark class="ent_label">year</mark>
+				</span>
+			</span>
+			<mark class="ent_label">date</mark>
+		</span> unix based operating systems will reach the same limit faced during the y2k scare.
+</article>
+
+<article>
+	{@html insertEntities(topics[topic].text, topics[topic][service]) }
+</article>
+
+<script>
+	export default {
+		helpers: {
+			insertEntities(text, entities) {
+				let markup = text;
+
+				// extract just the match objects
+				let allMatches = [];
+				entities.forEach((ent)=> allMatches = allMatches.concat(ent.matches));
+				// then sort the matches by start position.
+				let matchesByStart = {};
+				allMatches.forEach((match)=>{
+					let position = (matchesByStart[match.start] || []);
+					position.push(match);
+					matchesByStart[match.start] = position;
+				});
+				console.log(matchesByStart);
+
+				let markupChunks = [];
+				// set two indexes.  
+				let previousPosition = 0;
+				let currentPosition = null;
+				// then walk the match index.  Consuming all of the
+				// text between the previous position and the match position.
+				let matchPositions = Object.keys(matchesByStart);
+				let matchCount = matchPositions.length;
+				for (let keyIndex = 0; keyIndex < matchCount; keyIndex++){
+					// sort matches from longest to shortest.
+					let matchPosition = matchPositions[keyIndex];
+					let matches = matchesByStart[matchPosition];
+					matches.sort((m1, m2) => m1.end > m2.end);
+					currentPosition = matches[0].start;
+					// get all of the text between the previous position and 
+					// the current position and push that into the chunks.
+					markupChunks.push(text.slice(previousPosition, currentPosition));
+					
+					let longestMatch = matches[0];
+					markupChunks.push(`<span style="background-color:#ddd" data-id="${longestMatch.id}">`);
+					markupChunks.push(text.slice(longestMatch.start, longestMatch.end));
+					markupChunks.push('</span>');
+					previousPosition = longestMatch.end;
+					currentPosition = longestMatch.end;
+					/*
+					matches.forEach((match) => { markupChunks.push(`<span data-id="${match.id}">`) });
+					for (let matchIndex = matches.length - 1; matchIndex < 0 ; matchIndex-- ){
+						previousPosition = currentPosition;
+						currentPosition = matches[matchIndex].end;
+						markupChunks.push(text.slice(previousPosition,currentPosition));
+						markupChunks.push("</span>");
+					};
+					*/
+				}
+
+				markup = markupChunks.join('');
+				console.log(markup);
+				return markup;
+			}
+		}
+	};
+</script>
+
+<style>
+	h1 {
+		color: purple;
+	}
+
+	article {
+		line-height: 3;
+	}
+
+	span.ent {
+		display: inline-flex;
+		flex-flow: column;
+		border-left: 2px solid red;
+		border-right: 2px solid red;
+		line-height: normal;
+	}
+
+	span.ent_text > span.ent:first-child {
+		border-left: none;
+	}
+
+	span.ent_text > span.ent:last-child {
+		border-right: none;
+	}
+
+	mark.ent_label {
+		background-color: red;
+		color: white;
+		text-transform: uppercase;
+		font-size: small;
+		font-family: Georgia, 'Times New Roman', Times, serif
+	}
+</style>
