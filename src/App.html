@@ -16,88 +16,95 @@
 		</span> unix based operating systems will reach the same limit faced during the y2k scare.
 </article>
 
-<article>
-	{@html insertEntities(topics[topic].text, topics[topic][service]) }
-</article>
+<hr/>
+
+<EntityText spans={calculateSpans(topics[topic].text, topics[topic][service])}></EntityText>
 
 <script>
+	import EntityText from './EntityText.html';
+
 	export default {
+		components: {
+			EntityText
+		},
 		helpers: {
-			matchGroups(entities){
-				// extract just the match objects
+			calculateSpans(text, entities) {
+				// get all the matches
 				let allMatches = [];
-				entities.forEach((ent)=> allMatches = allMatches.concat(ent.matches));
-				// then sort the matches by start position.
-				// This is inadequate.  It's gotta be by start AND if a match 
-				// is wholely contained w/in the span of another span.
-				// I suppose that means the entire thing has to be a recursive
-				// descent.
-				let matchesByStart = {};
-				allMatches.forEach((match)=>{
-					let position = (matchesByStart[match.start] || []);
-					position.push(match);
-					matchesByStart[match.start] = position;
-				});
-				console.log(matchesByStart);
-				return matchesByStart;
-			},
-			insertEntities(text, entities) {
-				let markup = text;
+				entities.forEach((ent)=> {allMatches = allMatches.concat(ent.matches)});
+				// identify which matches overlap.
+				let matchGroups = {};
+				// sort the matches by length
+				// (since it's not possible for smaller matches to include a larger one)
+				allMatches.forEach((m)=>{m.length = m.end-m.start});
+				allMatches.sort((m1, m2) =>(m2.length-m1.length));
 
-				// extract just the match objects
-				let allMatches = [];
-				entities.forEach((ent)=> allMatches = allMatches.concat(ent.matches));
-				// then sort the matches by start position.
-				// This is inadequate.  It's gotta be by start AND if a match 
-				// is wholely contained w/in the span of another span.
-				// I suppose that means the entire thing has to be a recursive
-				// descent.
-				let matchesByStart = {};
-				allMatches.forEach((match)=>{
-					let position = (matchesByStart[match.start] || []);
-					position.push(match);
-					matchesByStart[match.start] = position;
-				});
-				console.log(matchesByStart);
+				let entitySpans = {};
+				allMatches.forEach((match) => {
+					let positions = Object.keys(entitySpans);
 
-				let markupChunks = [];
-				// set two indexes.  
-				let previousPosition = 0;
-				let currentPosition = null;
-				// then walk the match index.  Consuming all of the
-				// text between the previous position and the match position.
-				let matchPositions = Object.keys(matchesByStart);
-				let matchCount = matchPositions.length;
-				for (let keyIndex = 0; keyIndex < matchCount; keyIndex++){
-					// sort matches from longest to shortest.
-					let matchPosition = matchPositions[keyIndex];
-					let matches = matchesByStart[matchPosition];
-					matches.sort((m1, m2) => m1.end > m2.end);
-					currentPosition = matches[0].start;
-					// get all of the text between the previous position and 
-					// the current position and push that into the chunks.
-					markupChunks.push(text.slice(previousPosition, currentPosition));
-					
-					let longestMatch = matches[0];
-					markupChunks.push(`<span style="background-color:#ddd" class="ent" data-id="${longestMatch.id}"><span class="ent_text">`);
-					markupChunks.push(text.slice(longestMatch.start, longestMatch.end));
-					markupChunks.push('</span></span>');
-					previousPosition = longestMatch.end;
-					currentPosition = longestMatch.end;
-					/*
-					matches.forEach((match) => { markupChunks.push(`<span data-id="${match.id}">`) });
-					for (let matchIndex = matches.length - 1; matchIndex < 0 ; matchIndex-- ){
-						previousPosition = currentPosition;
-						currentPosition = matches[matchIndex].end;
-						markupChunks.push(text.slice(previousPosition,currentPosition));
-						markupChunks.push("</span>");
-					};
-					*/
+					// find the span which ends after the match starts
+					// and begins before the match ends.
+					let overlapId = positions.findIndex((key) => {
+						let span = entitySpans[key];
+						return span.start <= match.end && span.end >= match.start;
+					});
+					if (overlapId >= 0) {
+						console.log("==================");
+						console.log("OVERLAP!");
+						console.log(text.slice(match.start,match.end));
+						let position = positions[overlapId];
+						let span = entitySpans[position];
+						console.log(text.slice(span.start,span.end));
+
+						let matches = (span.matches || []);
+						matches.push(match);
+						span.matches = matches;
+					} else {
+						//console.log("==================");
+						//console.log("No Overlap");
+						entitySpans[match.start] = match;
+					}
+				});
+				// Group matches heirarchically as needed.
+				// Create a list of text chunks and match spans
+				// to pass back
+				let chunks = [];
+				let lastPosition = 0;
+				for (let position in entitySpans) {
+					let span = entitySpans[position];
+					lastPosition = (chunks.length > 0)? chunks[chunks.length-1].end : 0 ;
+					if (lastPosition < span.start ) {
+						let preamble = text.slice(lastPosition, span.start);
+						chunks.push({ 
+							type:"text", 
+							text: preamble, 
+							start: lastPosition, 
+							end: span.start
+						});
+					}
+					let entityText = text.slice(span.start, span.end)
+					chunks.push({ 
+						type:		"entity", 
+						text: 	entityText, 
+						start:	span.start, 
+						end:		span.end, 
+						entity: span
+					});
+				};
+				let keys = Object.keys(entitySpans)
+				let lastSpan = entitySpans[keys[keys.length-1]];
+				if (lastSpan.end < text.length ){
+					let lastChunk = {
+						type: 'text',
+						text: text.slice(lastSpan.end, text.length),
+						start: lastSpan.end,
+						end: text.length
+					}
+					chunks.push(lastChunk);
 				}
 
-				markup = markupChunks.join('');
-				console.log(markup);
-				return markup;
+				return chunks;
 			}
 		}
 	};
