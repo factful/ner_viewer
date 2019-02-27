@@ -1,0 +1,26 @@
+<article>
+  {#each spans as span}
+    {#if span.type == 'entity' }
+      <Entity text={span.text} label={(span.entity.label || "UNK")} data={span.matches} >
+      </Entity>
+    {:else}
+      { span.text }
+    {/if}
+  {/each}
+</article>
+
+<script>
+  import Entity from './Entity.html'
+
+  export default {
+    components: {
+      Entity
+    }
+  };
+</script>
+
+<style>
+	article {
+		line-height: 3;
+	}
+</style>
