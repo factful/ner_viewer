@@ -3,9 +3,20 @@
     {text}
   </span>
   <mark class="ent_label">
-    {label}
+    { displayLabel(label, text) }
   </mark>
 </span>
+
+<script>
+  export default {
+    helpers: {
+      displayLabel(label, text){
+        //return (text.length > 3) ? label : label.slice(0,3);
+        return label
+      }
+    }
+  }
+</script>
 
 <style>
 	span.ent {
