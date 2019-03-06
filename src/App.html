@@ -1,5 +1,12 @@
+<nav>
+	{#each Object.keys(topics[activeTopic]) as name }
+	{#if name != 'text'}
+	<div class:active="activeService == name" on:click="selectService(name)">{name}</div>
+	{/if}
+	{/each}
+</nav>
 
-<EntityText spans={calculateSpans(topics[topic].text, topics[topic][service])}></EntityText>
+<EntityText spans={calculateSpans(topics[activeTopic].text, topics[activeTopic][activeService])}></EntityText>
 
 <script>
 	import EntityText from './EntityText.html';
@@ -7,6 +14,12 @@
 	export default {
 		components: {
 			EntityText
+		},
+		methods: {
+			selectService(serviceName) {
+				console.log(`Selected ${serviceName}`);
+				this.set({activeService: serviceName});
+			}
 		},
 		helpers: {
 			calculateSpans(text, entities) {
@@ -123,4 +136,36 @@
 		font-size: small;
 		font-family: Georgia, 'Times New Roman', Times, serif
 	}
+
+	nav {
+		display: flex;
+		flex-wrap: wrap;
+	}
+
+	nav div {
+		justify-content: space-between;
+		padding: 4px;
+		margin: 2px;
+		border: 1px solid black;
+		min-width: 6em;
+		text-align: center;
+		border-radius: 4px;
+	}
+
+	nav div.active {
+		background-color: #ccc;
+	}
+
+	@media only screen and (max-device-width: 320px){
+		#image nav div {
+			min-width: 0em;
+		}
+	}
+
+	@media only screen and (min-device-width: 320px) and (max-device-width: 480px){
+		#image nav div {
+			min-width: 9em;
+		}
+	}
+
 </style>
