@@ -11,7 +11,9 @@ const app = new App({
 			deathOnBorder: deathOnBorder
 		},
 		activeTopic: "whiteFish",
-		activeService: "google"
+		activeService: "google",
+		activeEntity: null,
+		activeLabel: null
 	}
 });
 

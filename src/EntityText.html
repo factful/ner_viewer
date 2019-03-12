@@ -1,7 +1,7 @@
 <article>
   <nav id="types">
   {#each collectLabels(entities) as label}
-    <div>{label}</div>
+    <div class:active="activeLabel == label" on:click="selectLabel(label)">{label}</div>
   {/each}
   </nav>
   <nav>
@@ -11,8 +11,7 @@
   </nav>
   {#each calculateSpans(text, entities) as span}
     {#if span.type == 'entity' }
-      <Entity text={span.text} label={(span.entity.label || "Unknown")} data={span.matches} >
-      </Entity>
+      <Entity bind:activeEntity span={span} />
     {:else}
       { span.text }
     {/if}
@@ -25,8 +24,22 @@
   export default {
     components: {
       Entity
-    },
+		},
+		computed: {},
+		methods: {
+			selectLabel(label){
+				console.log(`SETTING LABEL TO ${label}`);
+				this.set({activeLabel:label});
+			}
+		},
     helpers: {
+			checkActivity(activeEntity, span){
+				if (span.entity.id) {
+					return (activeEntity == span.entity.id);
+				} else {
+					return (activeEntity == span.text)
+				}
+			},
       collectLabels(entities){
         let labels = entities.map((ent)=>(ent.type || "Unknown"));
         labels = labels.reduce((list, label)=>{
@@ -132,16 +145,35 @@
     display: flex;
   }
 
+	nav#types div.active {
+		border-left-color: #bf0000;
+	}
+
   nav#types div {
+		border-left: 10px solid #e1d08b;
     background-color: #1aa96b;
 		color: white;
 		text-transform: uppercase;
 		font-size: small;
 		font-family: Georgia, 'Times New Roman', Times, serif;
 
-    padding: 2px;
+		padding: 10px;
     margin: 2px; 
     line-height: 1;
+
+		--notchSize: 10px;
+  
+  clip-path: 
+    polygon(
+      0% var(--notchSize), 
+      var(--notchSize) 0%, 
+      100% 0%, 
+      100% 0%, 
+      100% 100%, 
+      100% 100%, 
+      var(--notchSize) 100%, 
+      0% calc(100% - var(--notchSize))
+    );
   }
 </style>
 

@@ -1,24 +1,35 @@
-<span class="ent">
-  <span class="ent_text">
-		{ text }
+<span class:active=checkActivity(activeEntity,span) class="ent" on:click=selectEntity(span)>
+  <span class="ent_label_sibling">
+		<span class="ent_text">{ span.text }</span>
   </span>
   <mark class="ent_label">
-    { displayLabel(label, text) }
+    { displayLabel(span) }
   </mark>
 </span>
-{#if false && (text.match(/^\n+$/))}
-<br/>
-{/if}
 
 <script>
   export default {
+		methods: {
+			selectEntity(span){
+				let entityString = (span.entity.id) ? span.entity.id : span.text;
+				console.log(`SELECTING ${entityString}`);
+				this.set({activeEntity:entityString});
+			}
+		},
     helpers: {
+			checkActivity(activeEntity, span){
+				console.log(activeEntity);
+				if (span.entity.id) {
+					return (activeEntity == span.entity.id);
+				} else {
+					return (activeEntity == span.text)
+				}
+			},
 			replaceNewlines(text){
 				return text.replace(/\n/,"<br/>")
 			},
-      displayLabel(label, text){
-        //return (text.length > 3) ? label : label.slice(0,3);
-        return label
+      displayLabel(span){
+        return (span.entity.label || "Unknown");
       }
     }
   }
@@ -26,13 +37,20 @@
 
 <style>
 	span.ent {
+		--entityColor: #1aa96b;
 		display: inline-flex;
 		flex-flow: column;
-		border-left: 2px solid #1aa96b;
-		border-right: 2px solid #1aa96b;
 		line-height: normal;
 	}
 
+	span.ent.active {
+		--entityColor: #bf0000;
+	}
+
+	span.ent_text {
+		border-left: 2px solid var(--entityColor);
+		border-right: 2px solid var(--entityColor);
+	}
 	span.ent_text > span.ent:first-child {
 		border-left: none;
 	}
@@ -42,10 +60,11 @@
 	}
 
 	mark.ent_label {
-		background-color: #1aa96b;
+		background-color: var(--entityColor);
 		color: white;
 		text-transform: uppercase;
 		font-size: small;
-		font-family: Georgia, 'Times New Roman', Times, serif
+		font-family: Georgia, 'Times New Roman', Times, serif;
+		padding: 2px;
 	}
 </style>
