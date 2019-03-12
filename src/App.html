@@ -6,7 +6,7 @@
 	{/each}
 </nav>
 
-<EntityText spans={calculateSpans(topics[activeTopic].text, topics[activeTopic][activeService])}></EntityText>
+<EntityText text={topics[activeTopic].text} entities={topics[activeTopic][activeService]} ></EntityText>
 
 <script>
 	import EntityText from './EntityText.html';
@@ -19,86 +19,6 @@
 			selectService(serviceName) {
 				console.log(`Selected ${serviceName}`);
 				this.set({activeService: serviceName});
-			}
-		},
-		helpers: {
-			calculateSpans(text, entities) {
-				// get all the matches
-				let allMatches = [];
-				entities.forEach((ent)=> {allMatches = allMatches.concat(ent.matches)});
-				// identify which matches overlap.
-				let matchGroups = {};
-				// sort the matches by length
-				// (since it's not possible for smaller matches to include a larger one)
-				allMatches.forEach((m)=>{m.length = m.end-m.start});
-				allMatches.sort((m1, m2) =>(m2.length-m1.length));
-
-				let entitySpans = {};
-				allMatches.forEach((match) => {
-					let positions = Object.keys(entitySpans);
-
-					// find the span which ends after the match starts
-					// and begins before the match ends.
-					let overlapId = positions.findIndex((key) => {
-						let span = entitySpans[key];
-						return span.start <= match.end && span.end >= match.start;
-					});
-					if (overlapId >= 0) {
-						console.log("==================");
-						console.log("OVERLAP!");
-						console.log(text.slice(match.start,match.end));
-						let position = positions[overlapId];
-						let span = entitySpans[position];
-						console.log(text.slice(span.start,span.end));
-
-						let matches = (span.matches || []);
-						matches.push(match);
-						span.matches = matches;
-					} else {
-						//console.log("==================");
-						//console.log("No Overlap");
-						entitySpans[match.start] = match;
-					}
-				});
-				// Group matches heirarchically as needed.
-				// Create a list of text chunks and match spans
-				// to pass back
-				let chunks = [];
-				let lastPosition = 0;
-				for (let position in entitySpans) {
-					let span = entitySpans[position];
-					lastPosition = (chunks.length > 0)? chunks[chunks.length-1].end : 0 ;
-					if (lastPosition < span.start ) {
-						let preamble = text.slice(lastPosition, span.start);
-						chunks.push({ 
-							type:"text", 
-							text: preamble, 
-							start: lastPosition, 
-							end: span.start
-						});
-					}
-					let entityText = text.slice(span.start, span.end)
-					chunks.push({ 
-						type:		"entity", 
-						text: 	entityText, 
-						start:	span.start, 
-						end:		span.end, 
-						entity: span
-					});
-				};
-				let keys = Object.keys(entitySpans)
-				let lastSpan = entitySpans[keys[keys.length-1]];
-				if (lastSpan.end < text.length ){
-					let lastChunk = {
-						type: 'text',
-						text: text.slice(lastSpan.end, text.length),
-						start: lastSpan.end,
-						end: text.length
-					}
-					chunks.push(lastChunk);
-				}
-
-				return chunks;
 			}
 		}
 	};

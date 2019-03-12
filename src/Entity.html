@@ -1,15 +1,21 @@
 <span class="ent">
   <span class="ent_text">
-    {text}
+		{ text }
   </span>
   <mark class="ent_label">
     { displayLabel(label, text) }
   </mark>
 </span>
+{#if false && (text.match(/^\n+$/))}
+<br/>
+{/if}
 
 <script>
   export default {
     helpers: {
+			replaceNewlines(text){
+				return text.replace(/\n/,"<br/>")
+			},
       displayLabel(label, text){
         //return (text.length > 3) ? label : label.slice(0,3);
         return label

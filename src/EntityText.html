@@ -1,12 +1,17 @@
 <article>
-  <nav>
-  {#each collectLabels(spans) as label}
+  <nav id="types">
+  {#each collectLabels(entities) as label}
     <div>{label}</div>
   {/each}
   </nav>
-  {#each spans as span}
+  <nav>
+  {#each collectIdentities(entities) as ent }
+    <div class={ent.id}>{ent.name}</div>
+  {/each}
+  </nav>
+  {#each calculateSpans(text, entities) as span}
     {#if span.type == 'entity' }
-      <Entity text={span.text} label={(span.entity.label || "UNK")} data={span.matches} >
+      <Entity text={span.text} label={(span.entity.label || "Unknown")} data={span.matches} >
       </Entity>
     {:else}
       { span.text }
@@ -22,15 +27,98 @@
       Entity
     },
     helpers: {
-      collectLabels(spans){
-        let entitySpans = spans.filter((span)=>span.entity);
-        let labels = entitySpans.map((span)=>(span.entity.label || "unk"));
+      collectLabels(entities){
+        let labels = entities.map((ent)=>(ent.type || "Unknown"));
         labels = labels.reduce((list, label)=>{
             if (list.indexOf(label) == -1){list.push(label)}; 
             return list},
           []);
         return labels.sort();
-      }
+      },
+      collectIdentities(entities){
+        let identified = entities.filter((ent)=>ent.id);
+        console.log("Total Entities:", entities.length, "Ents with ids:", identified.length);
+        return [];
+        return identified;
+      },
+      calculateSpans(text, entities) {
+				// get all the matches
+				let allMatches = [];
+				entities.forEach((ent)=> {allMatches = allMatches.concat(ent.matches)});
+				// identify which matches overlap.
+				let matchGroups = {};
+				// sort the matches by length
+				// (since it's not possible for smaller matches to include a larger one)
+				allMatches.forEach((m)=>{m.length = m.end-m.start});
+				allMatches.sort((m1, m2) =>(m2.length-m1.length));
+
+				let entitySpans = {};
+				allMatches.forEach((match) => {
+					let positions = Object.keys(entitySpans);
+
+					// find the span which ends after the match starts
+					// and begins before the match ends.
+					let overlapId = positions.findIndex((key) => {
+						let span = entitySpans[key];
+						return span.start <= match.end && span.end >= match.start;
+					});
+					if (overlapId >= 0) {
+						console.log("==================");
+						console.log("OVERLAP!");
+						console.log(text.slice(match.start,match.end));
+						let position = positions[overlapId];
+						let span = entitySpans[position];
+						console.log(text.slice(span.start,span.end));
+
+						let matches = (span.matches || []);
+						matches.push(match);
+						span.matches = matches;
+					} else {
+						//console.log("==================");
+						//console.log("No Overlap");
+						entitySpans[match.start] = match;
+					}
+				});
+				// Group matches heirarchically as needed.
+				// Create a list of text chunks and match spans
+				// to pass back
+				let chunks = [];
+				let lastPosition = 0;
+				for (let position in entitySpans) {
+					let span = entitySpans[position];
+					lastPosition = (chunks.length > 0)? chunks[chunks.length-1].end : 0 ;
+					if (lastPosition < span.start ) {
+						let preamble = text.slice(lastPosition, span.start);
+						chunks.push({ 
+							type:"text", 
+							text: preamble, 
+							start: lastPosition, 
+							end: span.start
+						});
+					}
+					let entityText = text.slice(span.start, span.end)
+					chunks.push({ 
+						type:		"entity", 
+						text: 	entityText, 
+						start:	span.start, 
+						end:		span.end, 
+						entity: span
+					});
+				};
+				let keys = Object.keys(entitySpans)
+				let lastSpan = entitySpans[keys[keys.length-1]];
+				if (lastSpan.end < text.length ){
+					let lastChunk = {
+						type: 'text',
+						text: text.slice(lastSpan.end, text.length),
+						start: lastSpan.end,
+						end: text.length
+					}
+					chunks.push(lastChunk);
+				}
+
+				return chunks;
+			}
     }
   };
 </script>
@@ -40,11 +128,11 @@
 		line-height: 3;
 	}
 
-  nav {
+  nav#types {
     display: flex;
   }
 
-  nav div {
+  nav#types div {
     background-color: #1aa96b;
 		color: white;
 		text-transform: uppercase;
