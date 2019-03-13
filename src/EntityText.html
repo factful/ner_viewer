@@ -1,17 +1,20 @@
 <article>
-  <nav id="types">
-  {#each collectLabels(entities) as label}
-    <div class:active="activeLabel == label" on:click="selectLabel(label)">{label}</div>
-  {/each}
-  </nav>
-  <nav>
-  {#each collectIdentities(entities) as ent }
-    <div class={ent.id}>{ent.name}</div>
-  {/each}
-  </nav>
+	<header>
+	  <nav id="types">
+	  {#each collectLabels(entities) as label}
+	    <div class:active="activeLabel == label.toLowerCase()" on:click="selectLabel(label)">{label}</div>
+	  {/each}
+		</nav>
+		<hr/>
+	  <nav id="identities">
+	  {#each collectIdentities(entities) as ent }
+	    <div class:active="activeEntity == ent.id" on:click="selectEntity(ent.id)">{ent.name}</div>
+	  {/each}
+		</nav>
+	</header>
   {#each calculateSpans(text, entities) as span}
     {#if span.type == 'entity' }
-      <Entity bind:activeEntity span={span} />
+      <Entity bind:activeLabel bind:activeEntity span={span} />
     {:else}
       { span.text }
     {/if}
@@ -29,17 +32,14 @@
 		methods: {
 			selectLabel(label){
 				console.log(`SETTING LABEL TO ${label}`);
-				this.set({activeLabel:label});
+				this.set({activeLabel:label.toLowerCase(), activeEntity:undefined});
+			},
+			selectEntity(id){
+				console.log(`SETTING ENTITY TO ${id}`);
+				this.set({activeLabel:undefined, activeEntity:id});
 			}
 		},
     helpers: {
-			checkActivity(activeEntity, span){
-				if (span.entity.id) {
-					return (activeEntity == span.entity.id);
-				} else {
-					return (activeEntity == span.text)
-				}
-			},
       collectLabels(entities){
         let labels = entities.map((ent)=>(ent.type || "Unknown"));
         labels = labels.reduce((list, label)=>{
@@ -50,8 +50,16 @@
       },
       collectIdentities(entities){
         let identified = entities.filter((ent)=>ent.id);
-        console.log("Total Entities:", entities.length, "Ents with ids:", identified.length);
-        return [];
+				console.log("Total Entities:", entities.length, "Ents with ids:", identified.length);
+				identified.sort((a,b)=>{ 
+					if (a.name < b.name) {
+						return -1;
+					} else if (a.name > b.name) {
+						return 1;
+					} else {
+						return 0;
+					}
+				});
         return identified;
       },
       calculateSpans(text, entities) {
@@ -141,39 +149,40 @@
 		line-height: 3;
 	}
 
-  nav#types {
-    display: flex;
-  }
+	nav {
+		display: flex;
+		flex-wrap: wrap;
+		width: 100%;
+	}
 
-	nav#types div.active {
+	nav div.active {
 		border-left-color: #bf0000;
 	}
 
-  nav#types div {
+	nav div {
 		border-left: 10px solid #e1d08b;
-    background-color: #1aa96b;
+		background-color: #1aa96b;
 		color: white;
 		text-transform: uppercase;
 		font-size: small;
 		font-family: Georgia, 'Times New Roman', Times, serif;
 
 		padding: 10px;
-    margin: 2px; 
-    line-height: 1;
+		margin: 2px; 
+		line-height: 1;
 
 		--notchSize: 10px;
-  
-  clip-path: 
-    polygon(
-      0% var(--notchSize), 
-      var(--notchSize) 0%, 
-      100% 0%, 
-      100% 0%, 
-      100% 100%, 
-      100% 100%, 
-      var(--notchSize) 100%, 
-      0% calc(100% - var(--notchSize))
-    );
+		clip-path: 
+			polygon(
+				0% var(--notchSize), 
+				var(--notchSize) 0%, 
+				100% 0%, 
+				100% 0%, 
+				100% 100%, 
+				100% 100%, 
+				var(--notchSize) 100%, 
+				0% calc(100% - var(--notchSize))
+			);
   }
 </style>
 

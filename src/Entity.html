@@ -1,4 +1,4 @@
-<span class:active=checkActivity(activeEntity,span) class="ent" on:click=selectEntity(span)>
+<span class:active=checkActivity(span,activeEntity,activeLabel) class="ent" on:click=selectEntity(span)>
   <span class="ent_label_sibling">
 		<span class="ent_text">{ span.text }</span>
   </span>
@@ -13,16 +13,18 @@
 			selectEntity(span){
 				let entityString = (span.entity.id) ? span.entity.id : span.text;
 				console.log(`SELECTING ${entityString}`);
-				this.set({activeEntity:entityString});
+				this.set({activeEntity:entityString, activeLabel: undefined});
 			}
 		},
     helpers: {
-			checkActivity(activeEntity, span){
-				console.log(activeEntity);
-				if (span.entity.id) {
+			checkActivity(span, activeEntity, activeLabel){
+				//console.log("Checking Activity", activeEntity, activeLabel);
+				if (activeEntity && span.entity.id) {
 					return (activeEntity == span.entity.id);
+				} else if (activeLabel) {
+					return activeLabel == (span.entity.label || "").toLowerCase();
 				} else {
-					return (activeEntity == span.text)
+					return false;
 				}
 			},
 			replaceNewlines(text){
