@@ -1,11 +1,12 @@
 <article>
 	<header>
+		Types
 		<nav id="types">
 		{#each collectLabels(entities) as label}
 		  <div class="right-tag" class:active="activeLabel == label.toLowerCase()" on:click="selectLabel(label)">{label}</div>
 		{/each}
 		</nav>
-		<hr/>
+		Entities
 		<nav id="identities">
 		{#each collectIdentities(entities) as ent }
 			<div class="left-tag" class:active="activeEntity == ent.id" on:click="selectEntity(ent.id)">{ent.name}</div>
@@ -147,26 +148,29 @@
 <style>
 	article {
 		line-height: 3;
+		margin: 4px;
 	}
 
-	/*nav {
+	nav {
 		display: flex;
 		flex-wrap: wrap;
 		width: 100%;
-	}*/
+	}
 
 	header {
 		width:100%;
 	}
 
-	nav {
-		overflow-y: auto;
-		overflow-x: auto;
-		display: flex;
-		flex-wrap: nowrap;
-		box-shadow: 
-		inset 0px 11px 8px -10px #CCC,
-		inset 0px -11px 8px -10px #CCC; 
+	@media only screen and (max-device-width: 420px){
+		nav {
+			overflow-y: auto;
+			overflow-x: auto;
+			display: flex;
+			flex-wrap: nowrap;
+			box-shadow: 
+			inset 0px 11px 8px -10px #CCC,
+			inset 0px -11px 8px -10px #CCC; 
+		}
 	}
 	
 	nav div {
@@ -185,7 +189,8 @@
 	}
 
 	nav div.active {
-		border-left-color: #bf0000;
+		border-left-color: #bf0000 !important;
+		border-right-color: #bf0000 !important;
 	}
 
 	nav div.left-tag {
