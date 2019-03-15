@@ -2,13 +2,13 @@
 	<header>
 	  <nav id="types">
 	  {#each collectLabels(entities) as label}
-	    <div class:active="activeLabel == label.toLowerCase()" on:click="selectLabel(label)">{label}</div>
+	    <div class="right-tag" class:active="activeLabel == label.toLowerCase()" on:click="selectLabel(label)">{label}</div>
 	  {/each}
 		</nav>
 		<hr/>
 	  <nav id="identities">
 	  {#each collectIdentities(entities) as ent }
-	    <div class:active="activeEntity == ent.id" on:click="selectEntity(ent.id)">{ent.name}</div>
+	    <div class="left-tag" class:active="activeEntity == ent.id" on:click="selectEntity(ent.id)">{ent.name}</div>
 	  {/each}
 		</nav>
 	</header>
@@ -159,7 +159,7 @@
 		border-left-color: #bf0000;
 	}
 
-	nav div {
+	nav div.left-tag {
 		border-left: 10px solid #e1d08b;
 		background-color: #1aa96b;
 		color: white;
@@ -184,6 +184,33 @@
 				0% calc(100% - var(--notchSize))
 			);
   }
+
+	nav div.right-tag {
+		border-right: 10px solid #e1d08b;
+		background-color: #1aa96b;
+		color: white;
+		text-transform: uppercase;
+		font-size: small;
+		font-family: Georgia, 'Times New Roman', Times, serif;
+
+		padding: 10px;
+		margin: 4px 6px; 
+		line-height: 1;
+
+		--notchSize: 10px;
+		clip-path: 
+			polygon(
+				0% 0%, 
+				0% 0%, 
+				calc(100% - var(--notchSize)) 0%, 
+				100% var(--notchSize), 
+				100% calc(100% - var(--notchSize)), 
+				calc(100% - var(--notchSize)) 100%, 
+				100% 100%, 
+				0% 100%
+			);
+  }
+
 </style>
 
 <!--
