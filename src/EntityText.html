@@ -1,15 +1,15 @@
 <article>
 	<header>
-	  <nav id="types">
-	  {#each collectLabels(entities) as label}
-	    <div class="right-tag" class:active="activeLabel == label.toLowerCase()" on:click="selectLabel(label)">{label}</div>
-	  {/each}
+		<nav id="types">
+		{#each collectLabels(entities) as label}
+		  <div class="right-tag" class:active="activeLabel == label.toLowerCase()" on:click="selectLabel(label)">{label}</div>
+		{/each}
 		</nav>
 		<hr/>
-	  <nav id="identities">
-	  {#each collectIdentities(entities) as ent }
-	    <div class="left-tag" class:active="activeEntity == ent.id" on:click="selectEntity(ent.id)">{ent.name}</div>
-	  {/each}
+		<nav id="identities">
+		{#each collectIdentities(entities) as ent }
+			<div class="left-tag" class:active="activeEntity == ent.id" on:click="selectEntity(ent.id)">{ent.name}</div>
+		{/each}
 		</nav>
 	</header>
   {#each calculateSpans(text, entities) as span}
@@ -149,18 +149,28 @@
 		line-height: 3;
 	}
 
-	nav {
+	/*nav {
 		display: flex;
 		flex-wrap: wrap;
 		width: 100%;
+	}*/
+
+	header {
+		width:100%;
 	}
 
-	nav div.active {
-		border-left-color: #bf0000;
+	nav {
+		overflow-y: auto;
+		overflow-x: auto;
+		display: flex;
+		flex-wrap: nowrap;
+		box-shadow: 
+		inset 0px 11px 8px -10px #CCC,
+		inset 0px -11px 8px -10px #CCC; 
 	}
-
-	nav div.left-tag {
-		border-left: 10px solid #e1d08b;
+	
+	nav div {
+		white-space: nowrap;
 		background-color: #1aa96b;
 		color: white;
 		text-transform: uppercase;
@@ -172,6 +182,14 @@
 		line-height: 1;
 
 		--notchSize: 10px;
+	}
+
+	nav div.active {
+		border-left-color: #bf0000;
+	}
+
+	nav div.left-tag {
+		border-left: 10px solid #e1d08b;
 		clip-path: 
 			polygon(
 				0% var(--notchSize), 
@@ -183,21 +201,10 @@
 				var(--notchSize) 100%, 
 				0% calc(100% - var(--notchSize))
 			);
-  }
+	}
 
 	nav div.right-tag {
 		border-right: 10px solid #e1d08b;
-		background-color: #1aa96b;
-		color: white;
-		text-transform: uppercase;
-		font-size: small;
-		font-family: Georgia, 'Times New Roman', Times, serif;
-
-		padding: 10px;
-		margin: 4px 6px; 
-		line-height: 1;
-
-		--notchSize: 10px;
 		clip-path: 
 			polygon(
 				0% 0%, 
